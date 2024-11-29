@@ -18,14 +18,18 @@ def replace_placeholders(template_path, replacements):
     return doc
 
 
-def save_word_as_pdf(word_path, pdf_path):
+def save_word_as_pdf(word_path, pdf_path, background_image=None):
     """
-    Convert the updated Word document to PDF using fpdf and UTF-8 encoding.
+    Convert the updated Word document to PDF using fpdf, with UTF-8 encoding and a custom background.
     """
     # Create a PDF object using FPDF
     pdf = FPDF()
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
+
+    # Add a custom background image if provided
+    if background_image:
+        pdf.image(background_image, x=0, y=0, w=210, h=297)  # A4 size in mm
 
     # Set the font with UTF-8 support
     pdf.set_font("Arial", size=12)
@@ -33,12 +37,21 @@ def save_word_as_pdf(word_path, pdf_path):
     # Open and read the Word document content
     doc = Document(word_path)
     for para in doc.paragraphs:
-        text = para.text
-        
         # Ensure that text is encoded in UTF-8 (handle special characters)
-        # Replacing unsupported characters with Unicode-safe handling
-        text = text.encode("latin-1", "replace").decode("latin-1")
+        text = para.text.encode("latin-1", "replace").decode("latin-1")
         
+        # Apply basic styles: bold, italic, underline
+        if para.style.name == 'Heading 1':
+            pdf.set_font("Arial", style='B', size=16)  # Heading 1 - Bold and larger font size
+        elif para.style.name == 'Heading 2':
+            pdf.set_font("Arial", style='B', size=14)  # Heading 2 - Bold
+        elif para.style.name == 'Normal':
+            pdf.set_font("Arial", size=12)  # Normal paragraph
+        elif para.style.name == 'Italic':
+            pdf.set_font("Arial", style='I', size=12)  # Italics
+        elif para.style.name == 'Bold':
+            pdf.set_font("Arial", style='B', size=12)  # Bold
+
         pdf.multi_cell(0, 10, text)
 
     pdf.output(pdf_path)
@@ -58,6 +71,7 @@ def main():
     template_path = os.path.abspath("NDA Template - INDIA 3.docx")  # Predefined common template
     output_docx = os.path.abspath("updated_template.docx")
     output_pdf = os.path.abspath("generated_nda.pdf")
+    background_image = "background_image.png"  # Your custom background image path
 
     if st.button("Generate PDF"):
         if not os.path.exists(template_path):
@@ -81,8 +95,8 @@ def main():
             updated_doc = replace_placeholders(template_path, replacements)
             updated_doc.save(output_docx)  # Save updated Word document
 
-            # Convert the updated Word document to PDF
-            save_word_as_pdf(output_docx, output_pdf)
+            # Convert the updated Word document to PDF with custom background
+            save_word_as_pdf(output_docx, output_pdf, background_image=background_image)
 
             # Provide the download link for the PDF
             with open(output_pdf, "rb") as pdf_file:
