@@ -71,7 +71,7 @@ def main():
     template_path = os.path.abspath("NDA Template - INDIA 3.docx")  # Predefined common template
     output_docx = os.path.abspath("updated_template.docx")
     output_pdf = os.path.abspath("generated_nda.pdf")
-    background_image = "background_image.png"  # Your custom background image path
+    background_image = "A4 - 2.jpg"  # Your custom background image path
 
     if st.button("Generate PDF"):
         if not os.path.exists(template_path):
