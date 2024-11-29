@@ -1,7 +1,7 @@
 import os
 import streamlit as st
 from docx import Document
-from fpdf import FPDF  # Use fpdf to create PDFs (cross-platform)
+from fpdf import FPDF  # fpdf library to create PDFs (cross-platform)
 
 
 def replace_placeholders(template_path, replacements):
@@ -20,18 +20,26 @@ def replace_placeholders(template_path, replacements):
 
 def save_word_as_pdf(word_path, pdf_path):
     """
-    Convert the updated Word document to PDF.
+    Convert the updated Word document to PDF using fpdf and UTF-8 encoding.
     """
     # Create a PDF object using FPDF
     pdf = FPDF()
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
-    
+
+    # Set the font with UTF-8 support
+    pdf.set_font("Arial", size=12)
+
     # Open and read the Word document content
     doc = Document(word_path)
     for para in doc.paragraphs:
-        pdf.set_font("Arial", size=12)
-        pdf.multi_cell(0, 10, para.text)
+        text = para.text
+        
+        # Ensure that text is encoded in UTF-8 (handle special characters)
+        # Replacing unsupported characters with Unicode-safe handling
+        text = text.encode("latin-1", "replace").decode("latin-1")
+        
+        pdf.multi_cell(0, 10, text)
 
     pdf.output(pdf_path)
 
