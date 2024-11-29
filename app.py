@@ -1,8 +1,7 @@
 import os
 import streamlit as st
 from docx import Document
-import pythoncom
-from win32com import client  # pip install pywin32
+from fpdf import FPDF  # Use fpdf to create PDFs (cross-platform)
 
 
 def replace_placeholders(template_path, replacements):
@@ -21,23 +20,20 @@ def replace_placeholders(template_path, replacements):
 
 def save_word_as_pdf(word_path, pdf_path):
     """
-    Convert a Word document to a PDF using Microsoft Word for perfect formatting.
+    Convert the updated Word document to PDF.
     """
-    pythoncom.CoInitialize()  # Initialize COM for multithreading (required by Streamlit)
-    try:
-        # Open Word application
-        word = client.Dispatch("Word.Application")
-        word.Visible = False  # Run Word in the background
+    # Create a PDF object using FPDF
+    pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.add_page()
+    
+    # Open and read the Word document content
+    doc = Document(word_path)
+    for para in doc.paragraphs:
+        pdf.set_font("Arial", size=12)
+        pdf.multi_cell(0, 10, para.text)
 
-        # Open the Word document
-        doc = word.Documents.Open(word_path)
-
-        # Save as PDF
-        doc.SaveAs(pdf_path, FileFormat=17)  # 17 = PDF format
-        doc.Close()
-        word.Quit()
-    except Exception as e:
-        raise RuntimeError(f"Error during Word to PDF conversion: {e}")
+    pdf.output(pdf_path)
 
 
 def main():
@@ -89,10 +85,8 @@ def main():
                     mime="application/pdf",
                 )
 
-        except RuntimeError as re:
-            st.error(f"Word-to-PDF Conversion Error: {re}")
         except Exception as e:
-            st.error(f"An unexpected error occurred: {e}")
+            st.error(f"An error occurred: {e}")
 
 
 if __name__ == "__main__":
